@@ -117,6 +117,11 @@
 .testi-name{font-size:0.84rem;font-weight:700;}
 .testi-role{font-size:0.72rem;color:var(--muted);}
 
+/* TOUR VIDEO */
+.tour-section{background:var(--white);}
+.tour-video{max-width:900px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-lg);background:#000;aspect-ratio:16/9;}
+.tour-video video{width:100%;height:100%;display:block;object-fit:cover;}
+
 /* CTA BANNER */
 .cta-banner{padding:5rem 4rem;background:linear-gradient(135deg,var(--maroon) 0%,#5e0000 100%);text-align:center;color:#fff;position:relative;overflow:hidden;}
 .cta-banner::before{content:'';position:absolute;top:-100px;right:-60px;width:360px;height:360px;border-radius:50%;background:rgba(237,176,76,0.12);}

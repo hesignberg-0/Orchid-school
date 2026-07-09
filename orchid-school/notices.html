@@ -67,7 +67,8 @@
     <!-- Live feed renders here if a Google Sheet CSV URL is configured in js/main.js -->
     <div id="noticeFeed"></div>
 
-    <!-- Static fallback notices (shown until the live sheet is connected) -->
+    <!-- Static fallback notices (auto-hidden when the live sheet loads) -->
+    <div id="noticeFallback">
     <div class="notice-row reveal">
       <div class="notice-date-big"><b>15</b><small>Magh</small></div>
       <div class="notice-row-body"><span class="ntag">🏃 Sports</span><h4>Annual Sports Day 2082</h4><p>Inter-house athletics, football finals and prize distribution. All parents are warmly invited to attend and cheer for our students.</p></div>
@@ -87,6 +88,7 @@
     <div class="notice-row reveal">
       <div class="notice-date-big"><b>★</b><small>Now</small></div>
       <div class="notice-row-body"><span class="ntag">🎓 Admission</span><h4>Admissions Open 2082–83</h4><p>Applications are being accepted for all classes from Nursery to Grade 12 (+2). Limited seats available, inquire early.</p></div>
+    </div>
     </div>
   </div>
 </section>

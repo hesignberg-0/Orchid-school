@@ -97,20 +97,63 @@ function handleContact(e){
   return false;
 }
 
-/* ---- Notice Board: optional live Google Sheet feed ----
-   To go live: publish a Google Sheet as CSV (File > Share > Publish to web > CSV)
-   with columns: Date, Title, Description. Paste the CSV URL below.        */
-const NOTICE_CSV_URL = ""; // <-- paste published CSV link here when ready
+/* ---- Notice Board: live Google Sheet feed ----
+   Published Google Sheet (File > Share > Publish to web > CSV).
+   Columns: Date, Title, Description. To change the sheet, replace the URL below. */
+const NOTICE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrM0wznJy7Tln5YaSFzLZA6x8VJrMOXrO9BpSg6zZOhVW8RdJZMUNHbYVeRrRE0ZmP6iiUrLaZwBUI/pub?output=csv";
+
+// Proper CSV parser: handles quoted fields, commas inside quotes, and escaped quotes ("")
+function parseCSV(text){
+  const rows=[]; let row=[], field='', inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else inQ=false; }
+      else field+=c;
+    } else {
+      if(c==='"') inQ=true;
+      else if(c===',') { row.push(field); field=''; }
+      else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c==='\r'){ /* skip */ }
+      else field+=c;
+    }
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+function escapeHTML(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+// Format a BS date like 2083/03/15 -> {day:'15', month:'Ashar'}; else show raw text
+function formatNoticeDate(raw){
+  const months=['','Baishakh','Jestha','Ashar','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
+  const m=(raw||'').trim().match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);
+  if(m){ const mo=parseInt(m[2],10); return {day:m[3].replace(/^0/,''), month:months[mo]||m[2]}; }
+  return {day:'📌', month:(raw||'').trim().slice(0,6)};
+}
 (function(){
-  const wrap = document.getElementById('noticeFeed');
-  if(!wrap || !NOTICE_CSV_URL) return;
+  const feed = document.getElementById('noticeFeed');       // full Notice Board page
+  const home = document.getElementById('noticeListHome');    // homepage preview box
+  if((!feed && !home) || !NOTICE_CSV_URL) return;
   fetch(NOTICE_CSV_URL).then(r=>r.text()).then(csv=>{
-    const rows = csv.trim().split('\n').slice(1).map(r=>r.split(','));
+    let rows = parseCSV(csv).filter(r=>r.length>=2 && (r[0]||r[1]));
+    if(rows.length) rows = rows.slice(1); // drop header
     if(!rows.length) return;
-    wrap.innerHTML = rows.map(([date,title,desc])=>`
-      <div class="notice-row reveal in">
-        <div class="notice-date-box"><span>${(date||'').trim()}</span></div>
-        <div class="notice-row-body"><h4>${(title||'').trim()}</h4><p>${(desc||'').trim()}</p></div>
-      </div>`).join('');
-  }).catch(()=>{});
+
+    if(feed){
+      feed.innerHTML = rows.map(([date,title,desc])=>{
+        const d=formatNoticeDate(date);
+        return `<div class="notice-row reveal in">
+          <div class="notice-date-big"><b>${escapeHTML(d.day)}</b><small>${escapeHTML(d.month)}</small></div>
+          <div class="notice-row-body"><span class="ntag">📢 Notice</span><h4>${escapeHTML((title||'').trim())}</h4><p>${escapeHTML((desc||'').trim())}</p></div>
+        </div>`;
+      }).join('');
+      const fb=document.getElementById('noticeFallback'); if(fb) fb.style.display='none';
+    }
+
+    if(home){
+      home.innerHTML = rows.slice(0,3).map(([date,title,desc])=>{
+        const d=formatNoticeDate(date);
+        return `<div class="notice-li"><div class="notice-date-box"><b>${escapeHTML(d.day)}</b><small>${escapeHTML(d.month)}</small></div><div class="notice-li-body"><h5>${escapeHTML((title||'').trim())}</h5><p>${escapeHTML((desc||'').trim())}</p></div></div>`;
+      }).join('');
+    }
+  }).catch(()=>{ /* keep static fallback on error */ });
 })();
